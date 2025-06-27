@@ -6,7 +6,7 @@ from rich.panel import Panel
 from rich.text import Text
 from datetime import datetime
 
-from database import get_monthly_expenses, get_all_expenses
+from database import get_monthly_expenses, get_all_expenses, search_expenses
 
 console = Console()
 
@@ -33,6 +33,7 @@ def display_monthly_report():
         return
 
     table = Table(title=f"Fiscal Report: {now.strftime('%B %Y')}", style="cyan")
+    table.add_column("ID", style="dim cyan")
     table.add_column("Date", style="magenta")
     table.add_column("Description", style="white")
     table.add_column("Category", style="yellow")
@@ -43,6 +44,7 @@ def display_monthly_report():
 
     for expense in expenses:
         table.add_row(
+            str(expense['id']),
             datetime.strptime(expense['timestamp'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'),
             expense['description'],
             expense['category'],
@@ -71,6 +73,7 @@ def display_all_expenses():
         return
 
     table = Table(title="Complete Transaction History", style="cyan")
+    table.add_column("ID", style="dim cyan")
     table.add_column("Date", style="magenta")
     table.add_column("Description", style="white")
     table.add_column("Category", style="yellow")
@@ -78,6 +81,32 @@ def display_all_expenses():
 
     for expense in expenses:
         table.add_row(
+            str(expense['id']),
+            datetime.strptime(expense['timestamp'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'),
+            expense['description'],
+            expense['category'],
+            f"€{expense['amount']:.2f}"
+        )
+
+    console.print(table)
+
+def display_search_results(keyword):
+    """Displays a formatted table of search results."""
+    expenses = search_expenses(keyword)
+    if not expenses:
+        console.print(Text(f"\n>> No transactions found matching '{keyword}'.", style="yellow"))
+        return
+
+    table = Table(title=f"Search Results for '{keyword}'")
+    table.add_column("ID", style="dim cyan")
+    table.add_column("Date", style="magenta")
+    table.add_column("Description", style="white")
+    table.add_column("Category", style="yellow")
+    table.add_column("Amount", justify="right", style="green")
+
+    for expense in expenses:
+        table.add_row(
+            str(expense['id']),
             datetime.strptime(expense['timestamp'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'),
             expense['description'],
             expense['category'],
